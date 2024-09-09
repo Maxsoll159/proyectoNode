@@ -24,3 +24,16 @@ routerAuth.post('/confirm-account',
     body("token").notEmpty().withMessage("El token no tiene que ir vacio"),
     handleInputErrors,
     AuthController.confirtAccount)
+
+routerAuth.post("/login",
+    body("email").isEmail().withMessage("Debe ser un email valido"),
+    body("password").notEmpty().withMessage("El password no debe ir vacio"),
+    handleInputErrors,
+    AuthController.loginUser
+)
+
+routerAuth.post("/request-code",
+    body("email").isEmail().withMessage("Debe ser un correo"),
+    handleInputErrors,
+    AuthController.requestConfirmationCode
+)

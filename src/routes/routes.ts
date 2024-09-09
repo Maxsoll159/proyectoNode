@@ -4,11 +4,13 @@ import { Router } from "express";
 import { routerTask } from "../presentation/task/routes";
 import { routerProjects } from "../presentation/projects/routes";
 import { routerAuth } from "../presentation/auth/routes";
+import { authenticate } from "../middleware/auth";
 
 
 const router = Router()
 
-router.use('/api/projects', routerProjects)
+router.use('/api/projects', 
+    routerProjects)
 
 router.use('/api/task', routerTask)
 

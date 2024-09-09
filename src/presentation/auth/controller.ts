@@ -4,6 +4,7 @@ import bcrypt from "bcrypt";
 import { generate6digitToken } from "../../utils/token";
 import { transporter } from "../../config/nodemailer";
 import { error } from "console";
+import { generateJWT } from "../../utils/jwt";
 
 export class AuthController {
   static createAccount = async (req: Request, res: Response) => {
@@ -16,7 +17,7 @@ export class AuthController {
         },
       });
 
-      if (userExist) return res.status(409).json({ error: "Ocurrio un Error" });
+      if (userExist) return res.status(404).json({ error: "usuario existe" });
 
       const salt = await bcrypt.genSalt(15);
 
@@ -69,7 +70,6 @@ export class AuthController {
         },
       });
 
- 
       if (!tokenConfird)
         return res.status(400).json({ error: "token invalido" });
 
@@ -110,4 +110,129 @@ export class AuthController {
       });
     }
   };
+
+  static loginUser = async (req: Request, res: Response) => {
+    try {
+      const { email, password } = req.body;
+
+      const user = await prisma.user.findFirst({
+        where: {
+          email: email,
+        },
+      });
+
+      if (!user)
+        return res.status(404).json({ error: "Usuario no encontrado" });
+
+      if (!user.confirmed) {
+        const token = await prisma.token.create({
+          data: {
+            token: generate6digitToken(),
+            userId: user.id,
+            createdAt: new Date(),
+            expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
+          },
+        });
+
+        await transporter.sendMail({
+          from: `UpTask <${user.email}>`,
+          to: user.email,
+          subject: "Confirma tu cuenta",
+          html: `<p>Correo de confirmacion ${token.token}</p>`,
+        });
+
+        return res
+          .status(401)
+          .json({ error: "Usuario no confirmado, se te envio un email" });
+      }
+
+      const isPassWordCorrect = await bcrypt.compare(password, user.password);
+
+      if (!isPassWordCorrect)
+        return res.status(400).json({ error: "Contraseña incorrecta" });
+
+      const userFormat = {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        confirmed: user.confirmed
+      }
+
+      res.status(200).json({
+        ...userFormat,
+        token: generateJWT(userFormat)
+      });
+
+    } catch (error) {
+      res.status(500).json({
+        error: "Ocurrio un error",
+      });
+    }
+  };
+
+  static requestConfirmationCode = async (req: Request, res: Response) => {
+    try {
+      const user = await prisma.user.findFirst({
+        where: {
+          email: req.body.email,
+        },
+      });
+
+      if (!user)
+        return res.status(400).json({ error: "usuario no encontrado" });
+
+      if(user.confirmed) res.status(400).json({error: "Token ya confirmado"})
+
+      const token = await prisma.token.create({
+        data: {
+          token: generate6digitToken(),
+          userId: user.id,
+          createdAt: new Date(),
+          expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24),
+        },
+      });
+
+      await transporter.sendMail({
+        from: `UpTask <${user.email}>`,
+        to: user.email,
+        subject: "Confirma tu cuenta",
+        html: `<p>Correo de confirmacion ${token.token}</p>`,
+      });
+
+      return res
+        .status(200)
+        .json({ success: "Se envio el token correctamente" });
+
+      
+    } catch (error) {}
+  };
+
+
+  static forgotPassword = async(req: Request, res:Response) =>{
+    try {
+      const user = await prisma.user.findFirst({
+        where: {
+          email: req.body.email,
+        },
+      });
+
+      if (!user)
+        return res.status(400).json({ error: "usuario no encontrado" });
+
+      await transporter.sendMail({
+        from: `UpTask <${user.email}>`,
+        to: user.email,
+        subject: "Restablecer contraseña",
+        html: `<p>Ingresa al link para restablecer tu contraseña</p>`,
+      });
+      return res
+      .status(200)
+      .json({ success: "Se envio correctamente el email" });
+
+
+    } catch (error) {
+      
+    }
+  }
+
 }
