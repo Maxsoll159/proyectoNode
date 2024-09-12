@@ -10,6 +10,7 @@ import { authenticate } from "../middleware/auth";
 const router = Router()
 
 router.use('/api/projects', 
+    authenticate,
     routerProjects)
 
 router.use('/api/task', routerTask)

@@ -41,4 +41,14 @@ export class TaskController {
       res.status(500).json({ error: "Hubo un error" });
     }
   };
+
+
+  static deleteAllTask = async(req: Request, res: Response) =>{
+    try {
+      const deleteTaskAll = await prisma.task.deleteMany()
+      return res.status(200).json({success: deleteTaskAll})
+    } catch (error) {
+      return res.status(500).json({error: "Error al borrar task"})
+    }
+  }
 }

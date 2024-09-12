@@ -11,7 +11,6 @@ routerProjects.get('/',  ProjectController.getAllProjects)
 
 
 routerProjects.post("/", 
-    authenticate,
     body('projectName').notEmpty().withMessage('El nombre del projecto es obligatorio'),
     body('clientName').notEmpty().withMessage('El nombre del cliente es obligatorio'),
     body('description').notEmpty().withMessage('El nombre del description es obligatorio'),
@@ -33,4 +32,10 @@ routerProjects.delete("/:id",
     param("id").notEmpty().withMessage('ID NO VALIDADO').isInt().withMessage('El ID debe ser un número entero'),
     handleInputErrors,
     ProjectController.deleteProject
+)
+
+
+routerProjects.delete("/", 
+    handleInputErrors,
+    ProjectController.deleteProjectAll
 )

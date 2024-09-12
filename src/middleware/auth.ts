@@ -6,7 +6,6 @@ export const authenticate = async(req: any, res: Response, next:NextFunction) =>
     const bearer = req.headers.authorization
     console.log("bearer", bearer)
     if(!bearer){
-       
         return res.status(400).json({error: "No Authorizado"})
     }
 
@@ -24,15 +23,15 @@ export const authenticate = async(req: any, res: Response, next:NextFunction) =>
                 }
             })
             if(user){
-                req.user =user
+                req.user = user
             }else{
-                res.status(500).json({error: "Error usuiaro no existe"})
+               return res.status(500).json({error: "Error usuiaro no existe"})
             }
         }
 
         
     } catch (error) {
-        res.status(500).json({error: "Token no valido"})
+        return res.status(500).json({error: "Token no valido"})
     }
 
     next()

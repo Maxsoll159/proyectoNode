@@ -27,6 +27,8 @@ model project {
   clientName  String @db.VarChar()
   description String @db.VarChar()
   task        task[]
+  manager     user   @relation(fields: [managerId], references: [id])
+  managerId   Int
 }
 
 model task {
@@ -39,19 +41,20 @@ model task {
 }
 
 model user {
-  id        Int     @id @default(autoincrement())
-  email     String  @unique
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
   password  String
   name      String
-  confirmed Boolean @default(false)
-  token token[]
+  confirmed Boolean   @default(false)
+  token     token[]
+  project   project[]
 }
 
 model token {
   id        Int      @id @default(autoincrement())
-  token String
-  userId     Int
-  user       user    @relation(fields: [userId], references: [id])
+  token     String
+  userId    Int
+  user      user     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   expiresAt DateTime
 }

@@ -31,3 +31,8 @@ routerTask.get("/:id",
     handleInputErrors,      
     TaskController.getIdTask
 )
+
+
+routerTask.delete("/",
+  TaskController.deleteAllTask
+)
